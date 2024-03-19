@@ -1,7 +1,7 @@
 use lsystem::{LRules, LSystem, MapRules};
 use nannou::prelude::*;
 
-static LSystemLevels: usize = 4;
+static LSYSTEM_LEVELS: usize = 4;
 
 fn main() {
     nannou::sketch(view).run()
@@ -20,8 +20,8 @@ fn view(app: &App, frame: Frame) {
     rules.set_str('0', "1[0]0");
     rules.set_str('1', "11");
     let axiom = "0".chars().collect();
-    let mut system = LSystem::new(rules, axiom);
-    let final_system_state = eval_lsystem(system, LSystemLevels);
+    let system = LSystem::new(rules, axiom);
+    let final_system_state = eval_lsystem(system, LSYSTEM_LEVELS);
 
     draw_lsystem(final_system_state, &draw, &win);
 
@@ -60,10 +60,10 @@ fn draw_lsystem(final_system_state: String, draw: &Draw, win: &Rect<f32>) {
                 let new_pos = pos + vec2(0.0, 25.0).rotate(angle);
                 draw.line()
                     .start(pos)
-                    .end(pos)
+                    .end(new_pos)
                     .color(WHITE)
                     .stroke_weight(2.0);
-                draw.ellipse().x_y(pos.x, pos.y).radius(5.0).color(PURPLE);
+                draw.ellipse().x_y(new_pos.x, new_pos.y).radius(5.0).color(PURPLE);
             }
             '[' => {
                 pos_stack.push(pos);

@@ -1,7 +1,6 @@
 use lsystem::{LRules, LSystem, MapRules};
 use nannou::prelude::*;
 
-
 pub fn draw_fractal_tree(evaluated_lsystem: &String, draw: &Draw, win: &Rect<f32>) {
     let start_pos = win.xy();
     let system_iter = evaluated_lsystem.chars();

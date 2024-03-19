@@ -3,34 +3,40 @@ use lsystem::{LRules, LSystem, MapRules};
 use nannou::prelude::*;
 use sierpinski_triangle::{draw_sierpinski_triangle, sierpinski_triangle_rules};
 
-mod fractal_tree;
-mod fractal_plant;
 mod dragon_curve;
-mod sierpinski_triangle;
+mod fractal_plant;
+mod fractal_tree;
 mod levy_c_curve;
-
-static LSYSTEM_LEVELS: usize = 4;
-
-
+mod sierpinski_triangle;
 
 struct Model {
     drawable: LevyCCurve,
     lsystem_levels: usize,
 }
+impl Model {}
 
 pub struct LSystemRules {
-    axiom: Vec<char>,
-    rules: MapRules<char>,
+    pub axiom: Vec<char>,
+    pub rules: Vec<(char, String)>,
 }
 
 impl LSystemRules {
-    fn new(axiom: Vec<char>, rules: MapRules<char>) -> Self {
+    pub fn new(axiom: Vec<char>, rules: Vec<(char, String)>) -> Self {
         LSystemRules { axiom, rules }
+    }
+    pub fn eval(&self, levels: &usize) -> String {
+        let mut map_rules = MapRules::new();
+        for (k, v) in self.rules.clone() {
+            map_rules.set_str(k, &v);
+        }
+
+        let mut system = LSystem::new(map_rules, self.axiom.clone());
+        system.nth(levels.clone()).unwrap().into_iter().collect()
     }
 }
 
 pub trait Drawable {
-    fn draw(&self, draw: &Draw, win: &Rect<f32>);
+    fn draw(&self, draw: &Draw, win: &Rect<f32>, levels: &usize);
 }
 
 struct LSystemDrawingParamaters {
@@ -58,12 +64,10 @@ fn main() {
 }
 
 fn model(app: &App) -> Model {
-
-
-
     Model {
         drawable: LevyCCurve::default(),
-        lsystem_levels: LSYSTEM_LEVELS,}
+        lsystem_levels: 4,
+    }
 }
 
 fn event(_app: &App, model: &mut Model, event: Event) {
@@ -74,12 +78,9 @@ fn event(_app: &App, model: &mut Model, event: Event) {
         } => match event {
             KeyPressed(Key::Up) => {
                 model.lsystem_levels += 1;
-                model.drawable = LevyCCurve::new(vec!['F'], levy_c_curve_rules(), vec2(0.0, 0.0));
-
             }
             KeyPressed(Key::Down) => {
                 model.lsystem_levels -= 1;
-                model.drawable = LevyCCurve::new(vec!['F'], levy_c_curve_rules(), vec2(0.0, 0.0));
             }
             _ => (),
         },
@@ -96,13 +97,8 @@ fn view(app: &App, model: &Model, frame: Frame) {
     // Clear the background to black.
     draw.background().color(BLACK);
 
-    model.drawable.draw(&draw, &win);
+    model.drawable.draw(&draw, &win, &model.lsystem_levels);
 
     // Write the result of our drawing to the window's frame.
     draw.to_frame(app, &frame).unwrap();
-}
-
-pub fn eval_lsystem(rules: MapRules<char>, levels: usize) -> String {
-    let mut system = LSystem::new(rules, vec!['F']);
-    system.nth(levels).unwrap().into_iter().collect()
 }

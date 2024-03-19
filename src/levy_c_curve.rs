@@ -1,27 +1,36 @@
-use nannou::prelude::*;
-use lsystem::{MapRules, LSystem};
-use crate::{eval_lsystem, LSYSTEM_LEVELS};
 use crate::{Drawable, LSystemDrawingParamaters, LSystemRules};
+use lsystem::{LSystem, MapRules};
+use nannou::prelude::*;
 
+pub fn levy_c_curve_rules() -> Vec<(char, String)> {
+    let rules = vec![('F', "+F--F+".to_string())];
 
-pub fn levy_c_curve_rules() -> MapRules<char> {
-    let mut rules = MapRules::new();
-    rules.set_str('F', "+F--F+");
     rules
+}
+
+pub fn levy_rules_object() -> LSystemRules {
+    LSystemRules::new(vec!['F'], levy_c_curve_rules())
 }
 
 pub struct LevyCCurve {
     params: LSystemDrawingParamaters,
-    rules: LSystemRules,
 }
 
 impl LevyCCurve {
-    pub fn new(axiom: Vec<char>, rules: MapRules<char>, start_pos: Vec2) -> Self {
+    pub fn new(axiom: Vec<char>, rules: Vec<(char, String)>, start_pos: Vec2) -> Self {
         let start_pos = start_pos;
-        let start_angle = deg_to_rad(45.0);
+        let start_angle = deg_to_rad(90.0);
         let params = LSystemDrawingParamaters::new(start_pos, start_angle);
-        let rules = LSystemRules::new(axiom, rules);
-        LevyCCurve { params, rules }
+
+        LevyCCurve { params }
+    }
+
+    pub fn with_params(
+        axiom: Vec<char>,
+        rules: Vec<(char, String)>,
+        params: LSystemDrawingParamaters,
+    ) -> Self {
+        LevyCCurve { params }
     }
 
     pub fn default() -> Self {
@@ -32,8 +41,8 @@ impl LevyCCurve {
 }
 
 impl Drawable for LevyCCurve {
-    fn draw(&self, draw: &Draw, win: &Rect<f32>) {
-        let evaluated_lsystem = eval_lsystem(levy_c_curve_rules(), LSYSTEM_LEVELS);
+    fn draw(&self, draw: &Draw, win: &Rect<f32>, levels: &usize) {
+        let evaluated_lsystem = levy_rules_object().eval(levels);
         let system_iter = evaluated_lsystem.chars();
         let mut pos = self.params.start_pos;
         let mut angle = self.params.angle;
@@ -46,7 +55,7 @@ impl Drawable for LevyCCurve {
                         .start(pos)
                         .end(new_pos)
                         .color(BLUE)
-                        .stroke_weight(2.0);
+                        .stroke_weight(1.0);
                     pos = new_pos;
                 }
                 '+' => {

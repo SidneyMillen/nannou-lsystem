@@ -1,14 +1,12 @@
 use lsystem::{LRules, LSystem, MapRules};
 use nannou::prelude::*;
 
-
 pub fn fractal_plant_rules() -> MapRules<char> {
     let mut rules = MapRules::new();
     rules.set_str('X', "F-[[X]+X]+F[+FX]-X");
     rules.set_str('F', "FF");
     rules
 }
-
 
 pub fn draw_fractal_plant(evaluated_lsystem: &String, draw: &Draw, win: &Rect<f32>) {
     let start_pos = win.bottom_left() + vec2(50.0, 0.0);
@@ -47,8 +45,6 @@ pub fn draw_fractal_plant(evaluated_lsystem: &String, draw: &Draw, win: &Rect<f3
                 angle = angle_stack.pop().unwrap();
             }
             _ => (),
-
         }
-
     }
 }

@@ -1,4 +1,4 @@
-use lsystem::{MapRules, LSystem};
+use lsystem::{LSystem, MapRules};
 use nannou::prelude::*;
 
 pub fn dragon_curve_rules() -> MapRules<char> {

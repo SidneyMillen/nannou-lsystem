@@ -26,10 +26,10 @@ pub fn draw_sierpinski_triangle(evaluated_lsystem: &String, draw: &Draw, win: &R
                 pos = new_pos;
             }
             '+' => {
-                angle += 2.0*PI / 3.0;
+                angle += 2.0 * PI / 3.0;
             }
             '-' => {
-                angle -= 2.0*PI / 3.0;
+                angle -= 2.0 * PI / 3.0;
             }
             _ => (),
         }

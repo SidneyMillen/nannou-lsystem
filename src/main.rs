@@ -3,8 +3,10 @@ use nannou::prelude::*;
 
 static LSYSTEM_LEVELS: usize = 6;
 
+
 struct Model {
     evaluated_lsystem: String,
+    axiom: Vec<char>,
     lsystem_levels: usize,
 }
 
@@ -13,15 +15,14 @@ fn main() {
 }
 
 fn model(app: &App) -> Model {
-    let mut rules = MapRules::new();
-    rules.set_str('0', "1[0]0");
-    rules.set_str('1', "11");
-    let axiom: Vec<char> = "0".chars().collect();
-    let evaluated_lsystem = eval_lsystem(rules, LSYSTEM_LEVELS);
+
+
+    let evaluated_lsystem = eval_lsystem(fractal_plant_rules(), LSYSTEM_LEVELS);
 
     Model {
         evaluated_lsystem,
         lsystem_levels: LSYSTEM_LEVELS,
+        axiom: vec!['0'],
     }
 }
 
@@ -33,9 +34,12 @@ fn event(_app: &App, model: &mut Model, event: Event) {
         } => match event {
             KeyPressed(Key::Up) => {
                 model.lsystem_levels += 1;
+                model.evaluated_lsystem = eval_lsystem(fractal_plant_rules(), model.lsystem_levels);
+
             }
             KeyPressed(Key::Down) => {
                 model.lsystem_levels -= 1;
+                model.evaluated_lsystem = eval_lsystem(fractal_plant_rules(), model.lsystem_levels);
             }
             _ => (),
         },
@@ -111,4 +115,11 @@ fn draw_lsystem(evaluated_lsystem: &String, draw: &Draw, win: &Rect<f32>) {
             _ => (),
         }
     }
+}
+
+pub fn fractal_plant_rules() -> MapRules<char> {
+    let mut rules = MapRules::new();
+    rules.set_str('0', "1[0]0");
+    rules.set_str('1', "11");
+    rules
 }

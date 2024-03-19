@@ -1,13 +1,49 @@
 use lsystem::{LRules, LSystem, MapRules};
 use nannou::prelude::*;
 
-static LSYSTEM_LEVELS: usize = 4;
+static LSYSTEM_LEVELS: usize = 6;
 
-fn main() {
-    nannou::sketch(view).run()
+struct Model {
+    evaluated_lsystem: String,
+    lsystem_levels: usize,
 }
 
-fn view(app: &App, frame: Frame) {
+fn main() {
+    nannou::app(model).event(event).simple_window(view).run();
+}
+
+fn model(app: &App) -> Model {
+    let mut rules = MapRules::new();
+    rules.set_str('0', "1[0]0");
+    rules.set_str('1', "11");
+    let axiom: Vec<char> = "0".chars().collect();
+    let evaluated_lsystem = eval_lsystem(rules, LSYSTEM_LEVELS);
+
+    Model {
+        evaluated_lsystem,
+        lsystem_levels: LSYSTEM_LEVELS,
+    }
+}
+
+fn event(_app: &App, model: &mut Model, event: Event) {
+    match event {
+        Event::WindowEvent {
+            simple: Some(event),
+            ..
+        } => match event {
+            KeyPressed(Key::Up) => {
+                model.lsystem_levels += 1;
+            }
+            KeyPressed(Key::Down) => {
+                model.lsystem_levels -= 1;
+            }
+            _ => (),
+        },
+        _ => (),
+    }
+}
+
+fn view(app: &App, model: &Model, frame: Frame) {
     // Begin drawing
     let win = app.window_rect();
     let t = app.time;
@@ -16,27 +52,21 @@ fn view(app: &App, frame: Frame) {
     // Clear the background to black.
     draw.background().color(BLACK);
 
-    let mut rules = MapRules::new();
-    rules.set_str('0', "1[0]0");
-    rules.set_str('1', "11");
-    let axiom = "0".chars().collect();
-    let system = LSystem::new(rules, axiom);
-    let final_system_state = eval_lsystem(system, LSYSTEM_LEVELS);
-
-    draw_lsystem(final_system_state, &draw, &win);
+    draw_lsystem(&model.evaluated_lsystem, &draw, &win);
 
     // Write the result of our drawing to the window's frame.
     draw.to_frame(app, &frame).unwrap();
 }
 
-pub fn eval_lsystem(mut system: LSystem<char, MapRules<char>>, levels: usize) -> String {
+pub fn eval_lsystem(rules: MapRules<char>, levels: usize) -> String {
+    let mut system = LSystem::new(rules, vec!['0']);
     system.nth(levels).unwrap().into_iter().collect()
 }
 
-fn draw_lsystem(final_system_state: String, draw: &Draw, win: &Rect<f32>) {
+fn draw_lsystem(evaluated_lsystem: &String, draw: &Draw, win: &Rect<f32>) {
     //println!("Final state: {:?}", final_system_state);
     let start_pos = win.mid_bottom();
-    let system_iter = final_system_state.chars();
+    let system_iter = evaluated_lsystem.chars();
     let mut pos = start_pos;
     let mut pos_stack: Vec<Vec2> = Vec::new();
     pos_stack.push(pos);
@@ -48,7 +78,7 @@ fn draw_lsystem(final_system_state: String, draw: &Draw, win: &Rect<f32>) {
     for c in system_iter {
         match c {
             '1' => {
-                let new_pos = pos + vec2(0.0, 25.0).rotate(angle);
+                let new_pos = pos + vec2(0.0, 7.5).rotate(angle);
                 draw.line()
                     .start(pos)
                     .end(new_pos)
@@ -57,13 +87,16 @@ fn draw_lsystem(final_system_state: String, draw: &Draw, win: &Rect<f32>) {
                 pos = new_pos;
             }
             '0' => {
-                let new_pos = pos + vec2(0.0, 25.0).rotate(angle);
+                let new_pos = pos + vec2(0.0, 7.5).rotate(angle);
                 draw.line()
                     .start(pos)
                     .end(new_pos)
                     .color(WHITE)
                     .stroke_weight(2.0);
-                draw.ellipse().x_y(new_pos.x, new_pos.y).radius(5.0).color(PURPLE);
+                draw.ellipse()
+                    .x_y(new_pos.x, new_pos.y)
+                    .radius(3.0)
+                    .color(PURPLE);
             }
             '[' => {
                 pos_stack.push(pos);

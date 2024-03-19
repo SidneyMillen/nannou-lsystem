@@ -22,7 +22,6 @@
             rust
             pkgs.cmake
             pkgs.pkg-config
-            pkgs.python39
             pkgs.alsa-lib
 
             pkgs.xorg.libX11

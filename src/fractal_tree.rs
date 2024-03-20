@@ -8,12 +8,12 @@ pub struct FractalTreeLSystem {
     pub line_length: f32,
     pub start_pos: Vec2,
     pub start_angle: f32,
-    pub branch_color: Rgb<f32>,
-    pub leaf_color: Rgb<f32>,
+    pub branch_color: Hsv,
+    pub leaf_color: Hsv,
 }
 
 impl FractalTreeLSystem {
-    pub fn new(line_length: f32, start_pos: Vec2, start_angle: f32, branch_color: Rgb, leaf_color: Rgb) -> Self {
+    pub fn new(line_length: f32, start_pos: Vec2, start_angle: f32, branch_color: Hsv, leaf_color: Hsv) -> Self {
         FractalTreeLSystem {
             line_length,
             start_pos,

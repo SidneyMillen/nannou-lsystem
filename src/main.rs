@@ -2,7 +2,7 @@ use fractal_plant::FractalPlantLSystem;
 use fractal_tree::FractalTreeLSystem;
 use lsystem::{LRules, LSystem, MapRules};
 pub use lsystems::{DrawableLSystem, LSystemDrawingParamaters, LSystemRules};
-use nannou::{geom::rect, prelude::*};
+use nannou::{color::IntoColor, geom::rect, prelude::*};
 use nannou_egui::{self, egui, Egui};
 use sierpinski_triangle::SierpinskiTriangleLSystem;
 
@@ -63,8 +63,8 @@ fn model(app: &App) -> Model {
                 5.0,
                 vec2(0.0, 0.0),
                 deg_to_rad(-90.0),
-                Rgb::new(1.0, 1.0, 1.0),
-                Rgb::new(0.0, 1.0, 0.0),
+                Hsv::new(0.5, 1.0, 1.0),
+                Hsv::new(1.0, 1.0, 1.0),
             ),
         },
     }
@@ -153,22 +153,28 @@ fn update(_app: &App, model: &mut Model, update: Update) {
                     egui::Slider::new(&mut fractal_tree_settings.start_angle, -PI..=PI)
                         .text("Start Angle"),
                 );
-                nannou_egui::color_picker::color_edit_button_rgb(
-                    ui,
-                    &mut [
-                        fractal_tree_settings.leaf_color.red,
-                        fractal_tree_settings.leaf_color.green,
-                        fractal_tree_settings.leaf_color.blue,
-                    ],
+
+                let screen_rect = ctx.screen_rect();
+                let width = screen_rect.width();
+                let height = screen_rect.height();
+
+                ui.add(
+                    egui::Slider::new(
+                        &mut fractal_tree_settings.start_pos.x,
+                        -width / 2.0..=width / 2.0,
+                    )
+                    .text("Start Pos X"),
                 );
-                nannou_egui::color_picker::color_edit_button_rgb(
-                    ui,
-                    &mut [
-                        fractal_tree_settings.branch_color.red,
-                        fractal_tree_settings.branch_color.green,
-                        fractal_tree_settings.branch_color.blue,
-                    ],
+                ui.add(
+                    egui::Slider::new(
+                        &mut fractal_tree_settings.start_pos.y,
+                        -height / 2.0..=height / 2.0,
+                    )
+                    .text("Start Pos Y"),
                 );
+
+                egui_edit_hsv(ui, &mut fractal_tree_settings.branch_color);
+                egui_edit_hsv(ui, &mut fractal_tree_settings.leaf_color);
             }
             LSystemSelection::FractalPlant => {
                 let fractal_plant_settings = &mut settings.fractal_plant_lsystem;
@@ -250,4 +256,19 @@ fn view(app: &App, model: &Model, frame: Frame) {
     // Write the result of our drawing to the window's frame.
     draw.to_frame(app, &frame).unwrap();
     model.egui.draw_to_frame(&frame).unwrap();
+}
+
+fn egui_edit_hsv(ui: &mut egui::Ui, color: &mut Hsv) {
+    let mut egui_hsv =
+        egui::ecolor::Hsva::new(color.hue.to_radians(), color.saturation, color.value, 1.0);
+
+    if egui::color_picker::color_edit_button_hsva(
+        ui,
+        &mut egui_hsv,
+        egui::color_picker::Alpha::Opaque,
+    )
+    .changed()
+    {
+        *color = nannou::color::Hsv::new(egui_hsv.h, egui_hsv.s, egui_hsv.v);
+    }
 }

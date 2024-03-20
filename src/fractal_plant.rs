@@ -1,13 +1,37 @@
 use lsystem::{LRules, LSystem, MapRules};
 use nannou::prelude::*;
 
-pub fn fractal_plant_rules() -> MapRules<char> {
-    let mut rules = MapRules::new();
-    rules.set_str('X', "F-[[X]+X]+F[+FX]-X");
-    rules.set_str('F', "FF");
-    rules
+use crate::{DrawableLSystem, LSystemRules};
+
+pub fn fractal_plant_rules_object() -> LSystemRules {
+    let rules = vec![
+        ('X', "F-[[X]+X]+F[+FX]-X".to_string()),
+        ('F', "FF".to_string()),
+    ];
+
+    LSystemRules::new(vec!['X'], rules)
 }
 
+pub struct FractalPlantLSystem {}
+
+impl FractalPlantLSystem {
+    pub fn new() -> Self {
+        FractalPlantLSystem {}
+    }
+}
+
+impl DrawableLSystem for FractalPlantLSystem {
+    fn draw(&self, draw: &Draw, win: &Rect<f32>, levels: &usize) {
+        let evaluated_lsystem = fractal_plant_rules_object()
+            .eval(levels)
+            .expect("lsystem evaluation failed");
+        draw_fractal_plant(&evaluated_lsystem, draw, win);
+    }
+
+    fn get_rules(&self) -> crate::LSystemRules {
+        fractal_plant_rules_object()
+    }
+}
 pub fn draw_fractal_plant(evaluated_lsystem: &String, draw: &Draw, win: &Rect<f32>) {
     let start_pos = win.bottom_left() + vec2(50.0, 0.0);
     let system_iter = evaluated_lsystem.chars();

@@ -1,4 +1,4 @@
-use crate::{Drawable, LSystemDrawingParamaters, LSystemRules};
+use crate::{DrawableLSystem, LSystemDrawingParamaters, LSystemRules};
 use lsystem::{LSystem, MapRules};
 use nannou::prelude::*;
 
@@ -8,10 +8,18 @@ pub fn levy_c_curve_rules() -> Vec<(char, String)> {
     rules
 }
 
-pub fn levy_rules_object() -> LSystemRules {
+fn levy_rules_object() -> LSystemRules {
     LSystemRules::new(vec!['F'], levy_c_curve_rules())
 }
 
+pub fn setup_levy_c_curve_lsystem(rect: Rect) -> LevyCCurve {
+    let axiom = vec!['F'];
+    let rules = levy_c_curve_rules();
+    let start_pos = rect.xy();
+    let start_angle = deg_to_rad(45.0);
+    let drawable = LevyCCurve::new(axiom, rules, start_pos);
+    drawable
+}
 pub struct LevyCCurve {
     params: LSystemDrawingParamaters,
 }
@@ -40,13 +48,14 @@ impl LevyCCurve {
     }
 }
 
-impl Drawable for LevyCCurve {
+impl DrawableLSystem for LevyCCurve {
     fn draw(&self, draw: &Draw, win: &Rect<f32>, levels: &usize) {
-        let evaluated_lsystem = levy_rules_object().eval(levels);
+        let evaluated_lsystem = levy_rules_object()
+            .eval(levels)
+            .expect("lsystem evaluation failed");
         let system_iter = evaluated_lsystem.chars();
         let mut pos = self.params.start_pos;
         let mut angle = self.params.angle;
-
         for c in system_iter {
             match c {
                 'F' => {
@@ -67,5 +76,9 @@ impl Drawable for LevyCCurve {
                 _ => (),
             }
         }
+    }
+
+    fn get_rules(&self) -> LSystemRules {
+        levy_rules_object()
     }
 }

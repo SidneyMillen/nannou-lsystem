@@ -1,12 +1,35 @@
 use lsystem::{LRules, LSystem, MapRules};
 use nannou::prelude::*;
 
-pub fn sierpinski_triangle_rules() -> MapRules<char> {
-    let mut rules = MapRules::new();
-    rules.set_str('F', "F-G+F+G-F");
-    rules.set_str('G', "GG");
-    rules
+use crate::{DrawableLSystem, LSystemRules};
+
+pub struct SierpinskiTriangleLSystem {}
+
+impl SierpinskiTriangleLSystem {
+    pub fn new() -> Self {
+        SierpinskiTriangleLSystem {}
+    }
 }
+
+impl DrawableLSystem for SierpinskiTriangleLSystem {
+    fn draw(&self, draw: &Draw, win: &Rect<f32>, levels: &usize) {
+        let evaluated_lsystem = sierpinski_triangle_rules_object()
+            .eval(levels)
+            .expect("sierpinski triangle lsystem evaluation failed");
+        draw_sierpinski_triangle(&evaluated_lsystem, draw, win);
+    }
+    fn get_rules(&self) -> LSystemRules {
+        sierpinski_triangle_rules_object()
+    }
+}
+
+
+pub fn sierpinski_triangle_rules_object() -> LSystemRules {
+    let axiom = vec!['F'];
+    let rules = vec![('F', "F-G+F+G-F".to_string()), ('G', "GG".to_string())];
+    LSystemRules::new(axiom, rules)
+}
+
 
 pub fn draw_sierpinski_triangle(evaluated_lsystem: &String, draw: &Draw, win: &Rect<f32>) {
     let start_pos = win.bottom_left() + vec2(50.0, 50.0);

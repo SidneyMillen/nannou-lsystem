@@ -14,6 +14,8 @@ impl DrawableLSystem for DragonCurve {
     fn get_rules(&self) -> LSystemRules {
         dragon_curve_rules_object()
     }
+
+
 }
 
 

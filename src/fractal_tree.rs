@@ -12,6 +12,7 @@ impl FractalTreeLSystem {
 }
 
 impl DrawableLSystem for FractalTreeLSystem {
+
     fn draw(&self, draw: &Draw, win: &Rect<f32>, levels: &usize) {
         let evaluated_lsystem = fractal_tree_rules_object()
             .eval(levels)
@@ -21,6 +22,9 @@ impl DrawableLSystem for FractalTreeLSystem {
     fn get_rules(&self) -> LSystemRules {
         fractal_tree_rules_object()
     }
+
+
+
 }
 
     pub fn draw_fractal_tree(evaluated_lsystem: &String, draw: &Draw, win: &Rect<f32>) {

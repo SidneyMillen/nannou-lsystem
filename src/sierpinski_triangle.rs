@@ -21,6 +21,9 @@ impl DrawableLSystem for SierpinskiTriangleLSystem {
     fn get_rules(&self) -> LSystemRules {
         sierpinski_triangle_rules_object()
     }
+
+
+
 }
 
 

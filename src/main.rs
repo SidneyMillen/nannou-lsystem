@@ -18,9 +18,11 @@ pub enum LSystemSelection {
     FractalPlant,
 }
 
-struct Settings {
+#[derive(Clone, Debug)]
+pub struct Settings {
     lsystem_selection: LSystemSelection,
     lsystem_levels: usize,
+    fractal_plant_lsystem: FractalPlantLSystem,
 }
 
 struct Model {
@@ -49,6 +51,7 @@ fn model(app: &App) -> Model {
         settings: Settings {
             lsystem_selection: LSystemSelection::FractalPlant,
             lsystem_levels: 4,
+            fractal_plant_lsystem: FractalPlantLSystem::new(5.0, vec2(0.0, 0.0), deg_to_rad(-30.0)),
         },
     }
 }
@@ -63,7 +66,7 @@ fn update(_app: &App, model: &mut Model, update: Update) {
     egui::Window::new("Settings").show(&ctx, |ui| {
         // Resolution slider
         ui.label("Iterations:");
-        ui.add(egui::Slider::new(&mut settings.lsystem_levels, 1..=12));
+        ui.add(egui::Slider::new(&mut settings.lsystem_levels, 1..=7));
         ui.label("L-System:");
         ui.radio_value(
             &mut settings.lsystem_selection,
@@ -90,6 +93,44 @@ fn update(_app: &App, model: &mut Model, update: Update) {
             LSystemSelection::LevyCCurve,
             "Levy C Curve",
         );
+        match settings.lsystem_selection {
+            LSystemSelection::DragonCurve => {}
+            LSystemSelection::SierpinskiTriangle => {}
+            LSystemSelection::LevyCCurve => {}
+            LSystemSelection::FractalTree => {}
+            LSystemSelection::FractalPlant => {
+                let fractal_plant_settings = &mut settings.fractal_plant_lsystem;
+
+                ui.label("Fractal Plant LSystem Parameters");
+                ui.add(
+                    egui::Slider::new(&mut fractal_plant_settings.line_length, 0.0..=20.0)
+                        .text("Line Length"),
+                );
+                ui.add(
+                    egui::Slider::new(&mut fractal_plant_settings.start_angle, -PI..=PI)
+                        .text("Start Angle"),
+                );
+
+                let screen_rect = ctx.screen_rect();
+                let width = screen_rect.width();
+                let height = screen_rect.height();
+
+                ui.add(
+                    egui::Slider::new(
+                        &mut fractal_plant_settings.start_pos.x,
+                        -width / 2.0..=width / 2.0,
+                    )
+                    .text("Start Pos X"),
+                );
+                ui.add(
+                    egui::Slider::new(
+                        &mut fractal_plant_settings.start_pos.y,
+                        -height / 2.0..=height / 2.0,
+                    )
+                    .text("Start Pos Y"),
+                );
+            }
+        }
     });
 }
 
@@ -128,8 +169,9 @@ fn view(app: &App, model: &Model, frame: Frame) {
             fractal_tree_drawable.draw(&draw, &win, &settings.lsystem_levels);
         }
         LSystemSelection::FractalPlant => {
-            let fractal_plant_drawable = FractalPlantLSystem::new();
-            fractal_plant_drawable.draw(&draw, &win, &settings.lsystem_levels);
+            settings
+                .fractal_plant_lsystem
+                .draw(&draw, &win, &settings.lsystem_levels);
         }
     }
     // Write the result of our drawing to the window's frame.

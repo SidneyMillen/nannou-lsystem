@@ -1,4 +1,4 @@
-use lsystem::{LRules, LSystem, MapRules};
+
 use nannou::prelude::*;
 
 use crate::{DrawableLSystem, LSystemRules};
@@ -26,7 +26,7 @@ impl FractalTreeLSystem {
 
 impl DrawableLSystem for FractalTreeLSystem {
 
-    fn draw(&self, draw: &Draw, win: &Rect<f32>, levels: &usize) {
+    fn draw(&self, draw: &Draw, _win: &Rect<f32>, levels: &usize) {
         let evaluated_lsystem = fractal_tree_rules_object()
             .eval(levels)
             .expect("fractal tree lsystem evaluation failed");
@@ -85,7 +85,7 @@ impl DrawableLSystem for FractalTreeLSystem {
 
 }
 
-    pub fn draw_fractal_tree(evaluated_lsystem: &String, draw: &Draw, win: &Rect<f32>) {}
+    pub fn draw_fractal_tree(_evaluated_lsystem: &String, _draw: &Draw, _win: &Rect<f32>) {}
 
     fn fractal_tree_rules_object() -> LSystemRules {
         let rules = vec![('0', "1[0]0".to_string()), ('1', "11".to_string())];

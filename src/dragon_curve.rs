@@ -1,57 +1,65 @@
-use lsystem::{LSystem, MapRules};
 use nannou::prelude::*;
 
 use crate::{DrawableLSystem, LSystemRules};
 
-
-pub struct DragonCurve {}
-
-impl DrawableLSystem for DragonCurve {
-    fn draw(&self, draw: &Draw, win: &Rect<f32>, levels: &usize) {
-        let evaluated_lsystem = self.get_rules().eval(levels).expect("lsystem evaluation failed");
-        draw_dragon_curve(&evaluated_lsystem, draw, win);
-    }
-    fn get_rules(&self) -> LSystemRules {
-        dragon_curve_rules_object()
-    }
-
-
+#[derive(Debug, Clone)]
+pub struct DragonCurveLSystem {
+    pub start_pos: Vec2,
+    pub start_angle: f32,
+    pub line_length: f32,
+    pub draw_color: Hsv,
 }
-
-
-pub fn dragon_curve_rules_object() -> LSystemRules {
-    let axiom = vec!['F'];
-    let rules = vec![
-        ('F', "F+G".to_string()),
-        ('G', "F-G".to_string())];
-    LSystemRules::new(axiom, rules)
-}
-
-
-pub fn draw_dragon_curve(evaluated_lsystem: &String, draw: &Draw, win: &Rect<f32>) {
-    let start_pos = win.xy();
-    let system_iter = evaluated_lsystem.chars();
-    let mut pos = start_pos;
-    let mut angle = 0.0;
-
-    for c in system_iter {
-        match c {
-            'F' | 'G' => {
-                let new_pos = pos + vec2(0.0, 5.0).rotate(angle);
-                draw.line()
-                    .start(pos)
-                    .end(new_pos)
-                    .color(BLUE)
-                    .stroke_weight(2.0);
-                pos = new_pos;
-            }
-            '+' => {
-                angle += PI / 2.0;
-            }
-            '-' => {
-                angle -= PI / 2.0;
-            }
-            _ => (),
+    
+impl DragonCurveLSystem {
+    pub fn new(start_pos: Vec2, start_angle: f32, line_length: f32, draw_color: Hsv) -> Self {
+        DragonCurveLSystem {
+            start_pos,
+            start_angle,
+            line_length,
+            draw_color,
         }
     }
 }
+
+impl DrawableLSystem for DragonCurveLSystem {
+    fn draw(&self, draw: &Draw, win: &Rect<f32>, levels: &usize) {
+        let evaluated_lsystem = self
+            .get_rules()
+            .eval(levels)
+            .expect("lsystem evaluation failed");
+
+        let system_iter = evaluated_lsystem.chars();
+        let mut angle = self.start_angle;
+        let mut pos = self.start_pos;
+
+        for c in system_iter {
+            match c {
+                'F' | 'G' => {
+                    let new_pos = pos + vec2(0.0, self.line_length).rotate(angle);
+                    draw.line()
+                        .start(pos)
+                        .end(new_pos)
+                        .color(self.draw_color)
+                        .stroke_weight(2.0);
+                    pos = new_pos;
+                }
+                '+' => {
+                    angle += PI / 2.0;
+                }
+                '-' => {
+                    angle -= PI / 2.0;
+                }
+                _ => (),
+            }
+        }
+    }
+    fn get_rules(&self) -> LSystemRules {
+
+    let axiom = vec!['F'];
+    let rules = vec![('F', "F+G".to_string()), ('G', "F-G".to_string())];
+    LSystemRules::new(axiom, rules)
+
+    }
+}
+
+

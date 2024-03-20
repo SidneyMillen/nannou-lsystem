@@ -1,6 +1,6 @@
-use lsystem::{LRules, LSystem, MapRules};
+
 use nannou::prelude::*;
-use nannou_egui::egui;
+
 
 use crate::{DrawableLSystem, LSystemRules};
 
@@ -18,27 +18,30 @@ pub struct FractalPlantLSystem {
     pub line_length: f32,
     pub start_pos: Vec2,
     pub start_angle: f32,
+    pub draw_color: Hsv,
 }
 
 impl FractalPlantLSystem {
-    pub fn new(line_length: f32, start_pos: Vec2, start_angle: f32) -> Self {
+    pub fn new(line_length: f32, start_pos: Vec2, start_angle: f32, draw_color: Hsv) -> Self {
         FractalPlantLSystem {
             line_length,
             start_pos,
             start_angle,
+            draw_color,
         }
     }
     pub fn default() -> Self {
         FractalPlantLSystem {
             line_length: 5.0,
             start_pos: vec2(0.0, 0.0),
+            draw_color: hsv(0.3, 0.0, 1.0),
             start_angle: deg_to_rad(-30.0),
         }
     }
 }
 
 impl DrawableLSystem for FractalPlantLSystem {
-    fn draw(&self, draw: &Draw, win: &Rect<f32>, levels: &usize) {
+    fn draw(&self, draw: &Draw, _win: &Rect<f32>, levels: &usize) {
         let evaluated_lsystem = fractal_plant_rules_object()
             .eval(levels)
             .expect("lsystem evaluation failed");
@@ -58,7 +61,7 @@ impl DrawableLSystem for FractalPlantLSystem {
                     draw.line()
                         .start(pos)
                         .end(new_pos)
-                        .color(GREEN)
+                        .color(self.draw_color)
                         .stroke_weight(2.0);
                     pos = new_pos;
                 }

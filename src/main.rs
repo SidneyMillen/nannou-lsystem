@@ -1,8 +1,10 @@
+use std::borrow::BorrowMut;
+
 use fractal_plant::FractalPlantLSystem;
 use fractal_tree::FractalTreeLSystem;
-use lsystem::{LRules, LSystem, MapRules};
+
 pub use lsystems::{DrawableLSystem, LSystemDrawingParamaters, LSystemRules};
-use nannou::{color::IntoColor, geom::rect, prelude::*};
+use nannou::{prelude::*};
 use nannou_egui::{self, egui, Egui};
 use sierpinski_triangle::SierpinskiTriangleLSystem;
 
@@ -29,6 +31,7 @@ pub struct Settings {
     fractal_plant_lsystem: FractalPlantLSystem,
     fractal_tree_lsystem: FractalTreeLSystem,
     sierpinski_triangle_lsystem: SierpinskiTriangleLSystem,
+    dragon_curve_lsystem: dragon_curve::DragonCurveLSystem,
 }
 
 struct Model {
@@ -57,14 +60,24 @@ fn model(app: &App) -> Model {
         settings: Settings {
             lsystem_selection: LSystemSelection::FractalPlant,
             lsystem_levels: 4,
-            sierpinski_triangle_lsystem: SierpinskiTriangleLSystem::new(5.0, vec2(0.0, 0.0), 0.0),
-            fractal_plant_lsystem: FractalPlantLSystem::new(5.0, vec2(0.0, 0.0), deg_to_rad(-30.0)),
+            sierpinski_triangle_lsystem: SierpinskiTriangleLSystem::new(5.0, vec2(0.0, 0.0), 0.0, Hsv::new(0.5, 1.0, 1.0)),
+            fractal_plant_lsystem: FractalPlantLSystem::new(
+                5.0,
+                vec2(0.0, 0.0),
+                deg_to_rad(-30.0),
+                Hsv::new(0.3, 1.0, 1.0)),
             fractal_tree_lsystem: FractalTreeLSystem::new(
                 5.0,
                 vec2(0.0, 0.0),
                 deg_to_rad(-90.0),
                 Hsv::new(0.5, 1.0, 1.0),
                 Hsv::new(1.0, 1.0, 1.0),
+            ),
+            dragon_curve_lsystem: dragon_curve::DragonCurveLSystem::new(
+                vec2(0.0, 0.0),
+                0.0,
+                5.0,
+                Hsv::new(0.5, 1.0, 1.0),
             ),
         },
     }
@@ -80,7 +93,7 @@ fn update(_app: &App, model: &mut Model, update: Update) {
     egui::Window::new("Settings").show(&ctx, |ui| {
         // Resolution slider
         ui.label("Iterations:");
-        ui.add(egui::Slider::new(&mut settings.lsystem_levels, 1..=7));
+        ui.add(egui::Slider::new(&mut settings.lsystem_levels, 1..=10));
         ui.label("L-System:");
         ui.radio_value(
             &mut settings.lsystem_selection,
@@ -108,7 +121,41 @@ fn update(_app: &App, model: &mut Model, update: Update) {
             "Levy C Curve",
         );
         match settings.lsystem_selection {
-            LSystemSelection::DragonCurve => {}
+            LSystemSelection::DragonCurve => {
+                let dragon_curve_settings = &mut settings.dragon_curve_lsystem;
+
+                ui.label("Dragon Curve LSystem Parameters");
+                ui.add(
+                    egui::Slider::new(&mut dragon_curve_settings.line_length, 0.0..=20.0)
+                        .text("Line Length"),
+                );
+                ui.add(
+                    egui::Slider::new(&mut dragon_curve_settings.start_angle, -PI..=PI)
+                        .text("Start Angle"),
+                );
+
+                let screen_rect = ctx.screen_rect();
+                let width = screen_rect.width();
+                let height = screen_rect.height();
+
+                ui.add(
+                    egui::Slider::new(
+                        &mut dragon_curve_settings.start_pos.x,
+                        -width / 2.0..=width / 2.0,
+                    )
+                    .text("Start Pos X"),
+                );
+                ui.add(
+                    egui::Slider::new(
+                        &mut dragon_curve_settings.start_pos.y,
+                        -height / 2.0..=height / 2.0,
+                    )
+                    .text("Start Pos Y"),
+                );
+
+                egui_edit_hsv(ui, &mut dragon_curve_settings.draw_color);
+                
+            }
             LSystemSelection::SierpinskiTriangle => {
                 let sierpinski_triangle_settings = &mut settings.sierpinski_triangle_lsystem;
 
@@ -140,6 +187,8 @@ fn update(_app: &App, model: &mut Model, update: Update) {
                     )
                     .text("Start Pos Y"),
                 );
+
+                egui_edit_hsv(ui, &mut sierpinski_triangle_settings.draw_color);
             }
             LSystemSelection::LevyCCurve => {}
             LSystemSelection::FractalTree => {
@@ -207,6 +256,8 @@ fn update(_app: &App, model: &mut Model, update: Update) {
                     )
                     .text("Start Pos Y"),
                 );
+
+                egui_edit_hsv(ui, &mut fractal_plant_settings.draw_color);
             }
         }
     });
@@ -220,7 +271,7 @@ fn raw_window_event(_app: &App, model: &mut Model, event: &nannou::winit::event:
 fn view(app: &App, model: &Model, frame: Frame) {
     // Begin drawing
     let win = app.window_rect();
-    let t = app.time;
+    let _t = app.time;
     let draw = app.draw();
     let settings = &model.settings;
 
@@ -229,8 +280,9 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
     match model.settings.lsystem_selection {
         LSystemSelection::DragonCurve => {
-            let dragon_curve_drawable = dragon_curve::DragonCurve {};
-            dragon_curve_drawable.draw(&draw, &win, &model.settings.lsystem_levels);
+            settings
+                .dragon_curve_lsystem
+                .draw(&draw, &win, &settings.lsystem_levels);
         }
         LSystemSelection::SierpinskiTriangle => {
             settings
@@ -259,15 +311,16 @@ fn view(app: &App, model: &Model, frame: Frame) {
 }
 
 fn egui_edit_hsv(ui: &mut egui::Ui, color: &mut Hsv) {
-    let mut egui_hsv =
-        egui::ecolor::Hsva::new(color.hue.to_radians(), color.saturation, color.value, 1.0);
+    let mut egui_hsv = egui::ecolor::Hsva::new(
+            color.hue.to_positive_radians() as f32 / (2.0 * PI as f32),
+            color.saturation, color.value, 1.0);
 
     if egui::color_picker::color_edit_button_hsva(
         ui,
         &mut egui_hsv,
         egui::color_picker::Alpha::Opaque,
     )
-    .changed()
+        .changed()
     {
         *color = nannou::color::Hsv::new(egui_hsv.h, egui_hsv.s, egui_hsv.v);
     }

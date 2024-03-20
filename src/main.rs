@@ -1,12 +1,16 @@
 use fractal_plant::FractalPlantLSystem;
+use fractal_tree::FractalTreeLSystem;
 use lsystem::{LRules, LSystem, MapRules};
+pub use lsystems::{DrawableLSystem, LSystemDrawingParamaters, LSystemRules};
 use nannou::{geom::rect, prelude::*};
 use nannou_egui::{self, egui, Egui};
+use sierpinski_triangle::SierpinskiTriangleLSystem;
 
 mod dragon_curve;
 mod fractal_plant;
 mod fractal_tree;
 mod levy_c_curve;
+mod lsystems;
 mod sierpinski_triangle;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -23,6 +27,8 @@ pub struct Settings {
     lsystem_selection: LSystemSelection,
     lsystem_levels: usize,
     fractal_plant_lsystem: FractalPlantLSystem,
+    fractal_tree_lsystem: FractalTreeLSystem,
+    sierpinski_triangle_lsystem: SierpinskiTriangleLSystem,
 }
 
 struct Model {
@@ -51,7 +57,15 @@ fn model(app: &App) -> Model {
         settings: Settings {
             lsystem_selection: LSystemSelection::FractalPlant,
             lsystem_levels: 4,
+            sierpinski_triangle_lsystem: SierpinskiTriangleLSystem::new(5.0, vec2(0.0, 0.0), 0.0),
             fractal_plant_lsystem: FractalPlantLSystem::new(5.0, vec2(0.0, 0.0), deg_to_rad(-30.0)),
+            fractal_tree_lsystem: FractalTreeLSystem::new(
+                5.0,
+                vec2(0.0, 0.0),
+                deg_to_rad(-90.0),
+                Rgb::new(1.0, 1.0, 1.0),
+                Rgb::new(0.0, 1.0, 0.0),
+            ),
         },
     }
 }
@@ -95,9 +109,67 @@ fn update(_app: &App, model: &mut Model, update: Update) {
         );
         match settings.lsystem_selection {
             LSystemSelection::DragonCurve => {}
-            LSystemSelection::SierpinskiTriangle => {}
+            LSystemSelection::SierpinskiTriangle => {
+                let sierpinski_triangle_settings = &mut settings.sierpinski_triangle_lsystem;
+
+                ui.label("Sierpinski Triangle LSystem Parameters");
+                ui.add(
+                    egui::Slider::new(&mut sierpinski_triangle_settings.line_length, 0.0..=20.0)
+                        .text("Line Length"),
+                );
+                ui.add(
+                    egui::Slider::new(&mut sierpinski_triangle_settings.start_angle, -PI..=PI)
+                        .text("Start Angle"),
+                );
+
+                let screen_rect = ctx.screen_rect();
+                let width = screen_rect.width();
+                let height = screen_rect.height();
+
+                ui.add(
+                    egui::Slider::new(
+                        &mut sierpinski_triangle_settings.start_pos.x,
+                        -width / 2.0..=width / 2.0,
+                    )
+                    .text("Start Pos X"),
+                );
+                ui.add(
+                    egui::Slider::new(
+                        &mut sierpinski_triangle_settings.start_pos.y,
+                        -height / 2.0..=height / 2.0,
+                    )
+                    .text("Start Pos Y"),
+                );
+            }
             LSystemSelection::LevyCCurve => {}
-            LSystemSelection::FractalTree => {}
+            LSystemSelection::FractalTree => {
+                let fractal_tree_settings = &mut settings.fractal_tree_lsystem;
+                ui.label("Fractal Tree LSystem Parameters");
+                ui.add(
+                    egui::Slider::new(&mut fractal_tree_settings.line_length, 0.0..=20.0)
+                        .text("Line Length"),
+                );
+                ui.add(
+                    egui::Slider::new(&mut fractal_tree_settings.start_angle, -PI..=PI)
+                        .text("Start Angle"),
+                );
+                nannou_egui::color_picker::color_edit_button_rgb(
+                    ui,
+                    &mut [
+                        fractal_tree_settings.leaf_color.red,
+                        fractal_tree_settings.leaf_color.green,
+                        fractal_tree_settings.leaf_color.blue,
+                    ],
+                );
+                nannou_egui::color_picker::color_edit_button_rgb(
+                    ui,
+                    &mut [
+                        fractal_tree_settings.branch_color.red,
+                        fractal_tree_settings.branch_color.green,
+                        fractal_tree_settings.branch_color.blue,
+                    ],
+                );
+            }
             LSystemSelection::FractalPlant => {
                 let fractal_plant_settings = &mut settings.fractal_plant_lsystem;
 
@@ -155,9 +227,9 @@ fn view(app: &App, model: &Model, frame: Frame) {
             dragon_curve_drawable.draw(&draw, &win, &model.settings.lsystem_levels);
         }
         LSystemSelection::SierpinskiTriangle => {
-            let sierpinski_triangle_drawable =
-                sierpinski_triangle::SierpinskiTriangleLSystem::new();
-            sierpinski_triangle_drawable.draw(&draw, &win, &settings.lsystem_levels);
+            settings
+                .sierpinski_triangle_lsystem
+                .draw(&draw, &win, &settings.lsystem_levels);
         }
         LSystemSelection::LevyCCurve => {
             let levy_c_drawable = levy_c_curve::setup_levy_c_curve_lsystem(app.window_rect());
@@ -165,8 +237,9 @@ fn view(app: &App, model: &Model, frame: Frame) {
             levy_c_drawable.draw(&draw, &win, &settings.lsystem_levels)
         }
         LSystemSelection::FractalTree => {
-            let fractal_tree_drawable = fractal_tree::FractalTreeLSystem::new();
-            fractal_tree_drawable.draw(&draw, &win, &settings.lsystem_levels);
+            settings
+                .fractal_tree_lsystem
+                .draw(&draw, &win, &settings.lsystem_levels);
         }
         LSystemSelection::FractalPlant => {
             settings
@@ -177,50 +250,4 @@ fn view(app: &App, model: &Model, frame: Frame) {
     // Write the result of our drawing to the window's frame.
     draw.to_frame(app, &frame).unwrap();
     model.egui.draw_to_frame(&frame).unwrap();
-}
-
-pub struct LSystemRules {
-    pub axiom: Vec<char>,
-    pub rules: Vec<(char, String)>,
-}
-
-impl LSystemRules {
-    pub fn new(axiom: Vec<char>, rules: Vec<(char, String)>) -> Self {
-        LSystemRules { axiom, rules }
-    }
-    pub fn eval(&self, levels: &usize) -> Option<String> {
-        let mut map_rules = MapRules::new();
-        for (k, v) in self.rules.clone() {
-            map_rules.set_str(k, &v);
-        }
-
-        let mut system = LSystem::new(map_rules, self.axiom.clone());
-        let output = system.nth(levels.clone())?.into_iter().collect();
-        Some(output)
-    }
-}
-
-pub trait DrawableLSystem {
-    fn draw(&self, draw: &Draw, win: &Rect<f32>, levels: &usize);
-    fn get_rules(&self) -> LSystemRules;
-}
-
-struct LSystemDrawingParamaters {
-    start_pos: Vec2,
-    pos: Vec2,
-    angle: f32,
-    pos_stack: Vec<Vec2>,
-    angle_stack: Vec<f32>,
-}
-
-impl LSystemDrawingParamaters {
-    fn new(start_pos: Vec2, angle: f32) -> Self {
-        LSystemDrawingParamaters {
-            start_pos,
-            pos: start_pos,
-            angle,
-            pos_stack: Vec::new(),
-            angle_stack: Vec::new(),
-        }
-    }
 }

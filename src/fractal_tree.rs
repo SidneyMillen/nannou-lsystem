@@ -3,11 +3,24 @@ use nannou::prelude::*;
 
 use crate::{DrawableLSystem, LSystemRules};
 
-pub struct FractalTreeLSystem {}
+#[derive(Debug, Clone)]
+pub struct FractalTreeLSystem {
+    pub line_length: f32,
+    pub start_pos: Vec2,
+    pub start_angle: f32,
+    pub branch_color: Rgb<f32>,
+    pub leaf_color: Rgb<f32>,
+}
 
 impl FractalTreeLSystem {
-    pub fn new() -> Self {
-        FractalTreeLSystem {}
+    pub fn new(line_length: f32, start_pos: Vec2, start_angle: f32, branch_color: Rgb, leaf_color: Rgb) -> Self {
+        FractalTreeLSystem {
+            line_length,
+            start_pos,
+            start_angle,
+            branch_color,
+            leaf_color,
+        }
     }
 }
 
@@ -17,35 +30,23 @@ impl DrawableLSystem for FractalTreeLSystem {
         let evaluated_lsystem = fractal_tree_rules_object()
             .eval(levels)
             .expect("fractal tree lsystem evaluation failed");
-        draw_fractal_tree(&evaluated_lsystem, draw, win);
-    }
-    fn get_rules(&self) -> LSystemRules {
-        fractal_tree_rules_object()
-    }
 
-
-
-}
-
-    pub fn draw_fractal_tree(evaluated_lsystem: &String, draw: &Draw, win: &Rect<f32>) {
-        let start_pos = win.xy();
         let system_iter = evaluated_lsystem.chars();
-        let mut pos = start_pos;
+        let mut pos = self.start_pos;
         let mut pos_stack: Vec<Vec2> = Vec::new();
         pos_stack.push(pos);
-        let start_angle = 0.0;
-        let mut angle = start_angle;
+        let mut angle = self.start_angle;
         let mut angle_stack: Vec<f32> = Vec::new();
         angle_stack.push(angle);
 
         for c in system_iter {
             match c {
                 '1' => {
-                    let new_pos = pos + vec2(0.0, 7.5).rotate(angle);
+                    let new_pos = pos + vec2(0.0, self.line_length).rotate(angle);
                     draw.line()
                         .start(pos)
                         .end(new_pos)
-                        .color(WHITE)
+                        .color(self.branch_color)
                         .stroke_weight(2.0);
                     pos = new_pos;
                 }
@@ -54,12 +55,12 @@ impl DrawableLSystem for FractalTreeLSystem {
                     draw.line()
                         .start(pos)
                         .end(new_pos)
-                        .color(WHITE)
+                        .color(self.branch_color)
                         .stroke_weight(2.0);
                     draw.ellipse()
                         .x_y(new_pos.x, new_pos.y)
                         .radius(3.0)
-                        .color(PURPLE);
+                        .color(self.leaf_color);
                 }
                 '[' => {
                     pos_stack.push(pos);
@@ -74,7 +75,17 @@ impl DrawableLSystem for FractalTreeLSystem {
                 _ => (),
             }
         }
+
     }
+    fn get_rules(&self) -> LSystemRules {
+        fractal_tree_rules_object()
+    }
+
+
+
+}
+
+    pub fn draw_fractal_tree(evaluated_lsystem: &String, draw: &Draw, win: &Rect<f32>) {}
 
     fn fractal_tree_rules_object() -> LSystemRules {
         let rules = vec![('0', "1[0]0".to_string()), ('1', "11".to_string())];

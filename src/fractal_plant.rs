@@ -46,7 +46,7 @@ pub fn draw_fractal_plant(evaluated_lsystem: &String, draw: &Draw, win: &Rect<f3
     for c in system_iter {
         match c {
             'F' => {
-                let new_pos = pos + vec2(0.0, 7.5).rotate(angle);
+                let new_pos = pos + vec2(0.0, 3.0).rotate(angle);
                 draw.line()
                     .start(pos)
                     .end(new_pos)

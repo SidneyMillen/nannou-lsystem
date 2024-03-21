@@ -1,6 +1,7 @@
 use lsystem::{LSystem, MapRules};
 use nannou::{geom::Rect, glam::Vec2, Draw};
 
+#[derive(Debug, Clone)]
 pub struct LSystemRules {
     pub axiom: Vec<char>,
     pub rules: Vec<(char, String)>,

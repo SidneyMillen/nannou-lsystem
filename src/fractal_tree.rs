@@ -85,7 +85,6 @@ impl DrawableLSystem for FractalTreeLSystem {
 
 }
 
-    pub fn draw_fractal_tree(_evaluated_lsystem: &String, _draw: &Draw, _win: &Rect<f32>) {}
 
     fn fractal_tree_rules_object() -> LSystemRules {
         let rules = vec![('0', "1[0]0".to_string()), ('1', "11".to_string())];

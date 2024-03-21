@@ -1,20 +1,22 @@
-use std::borrow::BorrowMut;
-
-use fractal_plant::FractalPlantLSystem;
-use fractal_tree::FractalTreeLSystem;
-
-pub use lsystems::{DrawableLSystem, LSystemDrawingParamaters, LSystemRules};
-use nannou::prelude::*;
-use nannou_egui::{self, egui, Egui};
-use sierpinski_triangle::SierpinskiTriangleLSystem;
-
 mod dragon_curve;
 mod fractal_plant;
 mod fractal_tree;
 mod koch_curves;
 mod levy_c_curve;
+mod lsystem_egui;
 mod lsystems;
 mod sierpinski_triangle;
+
+use std::borrow::BorrowMut;
+
+use fractal_plant::FractalPlantLSystem;
+use fractal_tree::FractalTreeLSystem;
+
+use lsystem_egui::LSystemRulesEditor;
+pub use lsystems::{DrawableLSystem, LSystemDrawingParamaters, LSystemRules};
+use nannou::prelude::*;
+use nannou_egui::{self, egui, Egui};
+use sierpinski_triangle::SierpinskiTriangleLSystem;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum LSystemSelection {
@@ -35,6 +37,7 @@ pub struct Settings {
     sierpinski_triangle_lsystem: SierpinskiTriangleLSystem,
     dragon_curve_lsystem: dragon_curve::DragonCurveLSystem,
     koch_curve_lsystem: koch_curves::KochCurveLSystem,
+    lsystem_rules_editor: LSystemRulesEditor,
 }
 
 struct Model {
@@ -92,6 +95,10 @@ fn model(app: &App) -> Model {
             koch_curve_lsystem: koch_curves::KochCurveLSystem::with_rules(
                 koch_curves::koch_pyramid_rules_object(),
             ),
+            lsystem_rules_editor: LSystemRulesEditor::new(LSystemRules::new(
+                vec!['F'],
+                vec![('F', "F+F-F-F+F".to_string())],
+            )),
         },
     }
 }
@@ -138,6 +145,9 @@ fn update(_app: &App, model: &mut Model, update: Update) {
             LSystemSelection::KochCurve,
             "Koch Curve",
         );
+
+        settings.lsystem_rules_editor.setup_window(ui, &ctx);
+
         match settings.lsystem_selection {
             LSystemSelection::DragonCurve => {
                 let dragon_curve_settings = &mut settings.dragon_curve_lsystem;

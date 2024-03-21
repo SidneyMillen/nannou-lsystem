@@ -74,6 +74,7 @@ fn model(app: &App) -> Model {
                 vec2(0.0, 0.0),
                 deg_to_rad(-30.0),
                 Hsv::new(0.3, 1.0, 1.0),
+                fractal_plant::another_custom_fractal_plant_rules_object(),
             ),
             fractal_tree_lsystem: FractalTreeLSystem::new(
                 5.0,
@@ -88,7 +89,9 @@ fn model(app: &App) -> Model {
                 5.0,
                 Hsv::new(0.5, 1.0, 1.0),
             ),
-            koch_curve_lsystem: koch_curves::KochCurveLSystem::new(5.0, vec2(0.0, 0.0), 0.0),
+            koch_curve_lsystem: koch_curves::KochCurveLSystem::with_rules(
+                koch_curves::koch_pyramid_rules_object(),
+            ),
         },
     }
 }

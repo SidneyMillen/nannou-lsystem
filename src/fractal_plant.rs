@@ -1,6 +1,4 @@
-
 use nannou::prelude::*;
-
 
 use crate::{DrawableLSystem, LSystemRules};
 
@@ -19,15 +17,23 @@ pub struct FractalPlantLSystem {
     pub start_pos: Vec2,
     pub start_angle: f32,
     pub draw_color: Hsv,
+    pub rules: LSystemRules,
 }
 
 impl FractalPlantLSystem {
-    pub fn new(line_length: f32, start_pos: Vec2, start_angle: f32, draw_color: Hsv) -> Self {
+    pub fn new(
+        line_length: f32,
+        start_pos: Vec2,
+        start_angle: f32,
+        draw_color: Hsv,
+        rules: LSystemRules,
+    ) -> Self {
         FractalPlantLSystem {
             line_length,
             start_pos,
             start_angle,
             draw_color,
+            rules,
         }
     }
     pub fn default() -> Self {
@@ -36,15 +42,23 @@ impl FractalPlantLSystem {
             start_pos: vec2(0.0, 0.0),
             draw_color: hsv(0.3, 0.0, 1.0),
             start_angle: deg_to_rad(-30.0),
+            rules: fractal_plant_rules_object(),
+        }
+    }
+    pub fn with_rules(rules: LSystemRules) -> Self {
+        FractalPlantLSystem {
+            line_length: 5.0,
+            start_pos: vec2(0.0, 0.0),
+            draw_color: hsv(0.3, 0.0, 1.0),
+            start_angle: deg_to_rad(-30.0),
+            rules,
         }
     }
 }
 
 impl DrawableLSystem for FractalPlantLSystem {
     fn draw(&self, draw: &Draw, _win: &Rect<f32>, levels: &usize) {
-        let evaluated_lsystem = fractal_plant_rules_object()
-            .eval(levels)
-            .expect("lsystem evaluation failed");
+        let evaluated_lsystem = self.rules.eval(levels).expect("lsystem evaluation failed");
 
         let system_iter = evaluated_lsystem.chars();
         let mut pos = self.start_pos;
@@ -87,4 +101,16 @@ impl DrawableLSystem for FractalPlantLSystem {
     fn get_rules(&self) -> crate::LSystemRules {
         fractal_plant_rules_object()
     }
+}
+
+pub fn custom_fractal_plant_rules_object() -> LSystemRules {
+    let rules = vec![('F', "FF-[-F+F+F]+[+F-F-F]".to_string())];
+
+    LSystemRules::new(vec!['F'], rules)
+}
+
+pub fn another_custom_fractal_plant_rules_object() -> LSystemRules {
+    let rules = vec![('X', "F[+X][-X]FX".to_string()), ('F', "FF".to_string())];
+
+    LSystemRules::new(vec!['X'], rules)
 }

@@ -1,4 +1,3 @@
-
 use nannou::prelude::*;
 
 use crate::{DrawableLSystem, LSystemRules};
@@ -13,7 +12,13 @@ pub struct FractalTreeLSystem {
 }
 
 impl FractalTreeLSystem {
-    pub fn new(line_length: f32, start_pos: Vec2, start_angle: f32, branch_color: Hsv, leaf_color: Hsv) -> Self {
+    pub fn new(
+        line_length: f32,
+        start_pos: Vec2,
+        start_angle: f32,
+        branch_color: Hsv,
+        leaf_color: Hsv,
+    ) -> Self {
         FractalTreeLSystem {
             line_length,
             start_pos,
@@ -25,7 +30,6 @@ impl FractalTreeLSystem {
 }
 
 impl DrawableLSystem for FractalTreeLSystem {
-
     fn draw(&self, draw: &Draw, _win: &Rect<f32>, levels: &usize) {
         let evaluated_lsystem = fractal_tree_rules_object()
             .eval(levels)
@@ -48,7 +52,7 @@ impl DrawableLSystem for FractalTreeLSystem {
                         .end(new_pos)
                         .color(self.branch_color)
                         .stroke_weight(2.0);
-                    pos = new_pos;
+                    pos = dbg! { new_pos };
                 }
                 '0' => {
                     let new_pos = pos + vec2(0.0, 7.5).rotate(angle);
@@ -75,19 +79,14 @@ impl DrawableLSystem for FractalTreeLSystem {
                 _ => (),
             }
         }
-
     }
     fn get_rules(&self) -> LSystemRules {
         fractal_tree_rules_object()
     }
-
-
-
 }
 
+fn fractal_tree_rules_object() -> LSystemRules {
+    let rules = vec![('0', "1[0]0".to_string()), ('1', "11".to_string())];
 
-    fn fractal_tree_rules_object() -> LSystemRules {
-        let rules = vec![('0', "1[0]0".to_string()), ('1', "11".to_string())];
-
-        LSystemRules::new(vec!['0'], rules)
+    LSystemRules::new(vec!['0'], rules)
 }

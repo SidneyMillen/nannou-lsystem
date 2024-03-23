@@ -32,7 +32,6 @@ impl LSystemRulesEditor {
             }
 
             self.rules.rules = rules_copy;
-            self.rules.axiom = gui_axiom.chars()[0];
 
             if ui.button("Add Rule").clicked() {
                 self.rules.rules.push(Default::default());

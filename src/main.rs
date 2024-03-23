@@ -14,7 +14,7 @@ use fractal_tree::FractalTreeLSystem;
 
 use lsystem_egui::LSystemRulesEditor;
 pub use lsystems::{DrawableLSystem, LSystemDrawingParamaters, LSystemRules};
-use nannou::prelude::*;
+use nannou::{color::FromColor, prelude::*};
 use nannou_egui::{self, egui, Egui};
 use sierpinski_triangle::SierpinskiTriangleLSystem;
 
@@ -76,7 +76,7 @@ fn model(app: &App) -> Model {
                 5.0,
                 vec2(0.0, 0.0),
                 deg_to_rad(-30.0),
-                Hsv::new(0.3, 1.0, 1.0),
+                Hsv::from_rgb(LinSrgb::new(0.0, 0.5, 0.0)),
                 fractal_plant::another_custom_fractal_plant_rules_object(),
             ),
             fractal_tree_lsystem: FractalTreeLSystem::new(
@@ -377,12 +377,8 @@ fn view(app: &App, model: &Model, frame: Frame) {
 }
 
 fn egui_edit_hsv(ui: &mut egui::Ui, color: &mut Hsv) {
-    let mut egui_hsv = egui::ecolor::Hsva::new(
-        color.hue.to_positive_radians() as f32 / (2.0 * PI as f32),
-        color.saturation,
-        color.value,
-        1.0,
-    );
+    let mut egui_hsv =
+        egui::ecolor::Hsva::new(color.hue.to_degrees(), color.saturation, color.value, 1.0);
 
     if egui::color_picker::color_edit_button_hsva(
         ui,
